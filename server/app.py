@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 import json
@@ -6,6 +6,7 @@ import json
 app = FastAPI(title="Secure OTA (basic)")
 BASE_DIR = Path(__file__).resolve().parent 
 
+# Basically gives the the paths to firmaware and metadata for each version
 def iter_versions():
     for p in BASE_DIR.iterdir():
         if p.is_dir():
@@ -63,3 +64,42 @@ def view_firmware(version: str):
         raise HTTPException(404, "firmware.txt not found")
     return {"version": version, "content": fw.read_text(encoding="utf-8")}
 
+def returnNumberFromVersion(vstr: str) -> int:
+    if vstr.startswith("v") and vstr[1:].isdigit():
+        return int(vstr[1:])
+    return 0
+
+@app.get("/check")
+def check_version(current: str = Query(..., description="Your current version, e.g. v12 or 12")):
+    current_n = returnNumberFromVersion(current)
+    if current_n < 0:
+        return {
+            "update_available": False,
+            "reason": "invalid_current",
+            "message": "Provide current like 'v12' or '12'.",
+            "current": current,
+        }
+
+    versions = [(name, meta) for name, meta, _fw in iter_versions()]
+    if not versions:
+        return {"update_available": False, "reason": "no_versions", "current": current}
+
+    latest_name, latest_meta = max(versions, key=lambda x: returnNumberFromVersion(x[0]))
+    latest_n = returnNumberFromVersion(latest_name)
+
+    if current_n >= latest_n:
+        return {"update_available": False, "current": current, "latest": latest_name}
+
+    try:
+        metadata = json.loads(latest_meta.read_text(encoding="utf-8"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Invalid metadata.json for {latest_name}: {e}")
+
+    return {
+        "update_available": True,
+        "from": current,
+        "to": latest_name,
+        "metadata": metadata,
+        "download": f"/versions/{latest_name}/download",
+    }
+    
