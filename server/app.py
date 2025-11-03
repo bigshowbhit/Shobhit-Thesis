@@ -64,14 +64,14 @@ def view_firmware(version: str):
         raise HTTPException(404, "firmware.txt not found")
     return {"version": version, "content": fw.read_text(encoding="utf-8")}
 
-def returnNumberFromVersion(vstr: str) -> int:
+def return_number(vstr: str) -> int:
     if vstr.startswith("v") and vstr[1:].isdigit():
         return int(vstr[1:])
     return 0
 
 @app.get("/check")
 def check_version(current: str = Query(..., description="Your current version, e.g. v12 or 12")):
-    current_n = returnNumberFromVersion(current)
+    current_n = return_number(current)
     if current_n < 0:
         return {
             "update_available": False,
@@ -84,8 +84,8 @@ def check_version(current: str = Query(..., description="Your current version, e
     if not versions:
         return {"update_available": False, "reason": "no_versions", "current": current}
 
-    latest_name, latest_meta = max(versions, key=lambda x: returnNumberFromVersion(x[0]))
-    latest_n = returnNumberFromVersion(latest_name)
+    latest_name, latest_meta = max(versions, key=lambda x: return_number(x[0]))
+    latest_n = return_number(latest_name)
 
     if current_n >= latest_n:
         return {"update_available": False, "current": current, "latest": latest_name}

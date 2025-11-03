@@ -9,6 +9,10 @@ HERE = Path(__file__).resolve().parent
 KEYS_DIR = HERE.parent / "keys"
 PRIVATE_KEY_PATH = KEYS_DIR / "private.pem"
 
+# so basically this computes sha256 of the firmware file, creates metadata.json with version, file name, sha256, timestamp
+# then signs the metadata.json with the RSA key (private.pem). The metadata is sent to the client for verification. Authenticity is measured by the signature (using public key already with the client)
+# If the attacker tampers with the firmware.txt file after sending the metadata.json, the sha256 hash will not match and the client will reject the firmware.
+
 def sha256_file(path: Path) -> str:
     """Compute SHA256 hash of a file."""
     h = hashlib.sha256()
@@ -60,10 +64,10 @@ def main():
     if meta_path.exists() and not args.overwrite:
         raise SystemExit(f"[!] {meta_path} exists. Use --overwrite to replace.")
 
-    # 1️⃣ Compute SHA-256 hash
+    # SHA256 of firmware file
     digest = sha256_file(fw)
 
-    # 2️⃣ Build unsigned metadata
+    # Build unsigned metadata
     metadata_unsigned = {
         "version": args.version,
         "file": args.file,
@@ -71,11 +75,11 @@ def main():
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
 
-    # 3️⃣ Sign metadata
+    # Sign the metadata
     priv = load_private_key()
     signature_b64 = sign_bytes(priv, canonical_json(metadata_unsigned))
 
-    # 4️⃣ Write final signed metadata.json
+    # Write final signed metadata.json
     metadata = dict(metadata_unsigned)
     metadata["signature"] = signature_b64
     meta_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
