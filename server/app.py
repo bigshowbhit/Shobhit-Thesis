@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 import json
 
-app = FastAPI(title="Secure OTA (basic)")
+app = FastAPI(title="Secure OTA")
 BASE_DIR = Path(__file__).resolve().parent 
 
 # Basically gives the the paths to firmaware and metadata for each version
