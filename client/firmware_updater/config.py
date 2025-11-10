@@ -1,6 +1,10 @@
-import yaml
 from .paths import CFG
+from pathlib import Path
+import yaml
 
-def load_config():
-    with open(CFG, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+CFG = Path(__file__).resolve().parent.parent / "config.yaml"
+
+def load_config(path: Path | None = None) -> dict:
+    p = Path(path) if path else CFG
+    with open(p, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}

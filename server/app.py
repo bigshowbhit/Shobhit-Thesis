@@ -98,7 +98,8 @@ def check_version(current: str = Query(..., description="Your current version, e
     return {
         "update_available": True,
         "from": current,
-        "to": latest_name,
+        #"to": latest_name,
+        "target": latest_name,
         "metadata": metadata,
         "download": f"/versions/{latest_name}/download",
     }

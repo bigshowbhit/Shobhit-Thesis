@@ -1,0 +1,4 @@
+server_url: "https://localhost:8443"
+device_id: "device-001"
+current_version: "v1"
+tls_ca_cert: "ca.pem"
