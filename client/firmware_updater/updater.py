@@ -9,7 +9,6 @@ from .util import ensure_dirs, sha256_file, atomic_symlink_update
 class Updater:
 
     def __init__(self):
-
         self.config = load_config()
         self.server = self.config["server_url"].rstrip("/")
         self.device_id = self.config.get("device_id", "dev-001")

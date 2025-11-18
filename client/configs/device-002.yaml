@@ -1,0 +1,4 @@
+server_url: "https://host.docker.internal:8443"
+device_id: "device-002"
+current_version: "v1"
+tls_ca_cert: "ca.pem"
