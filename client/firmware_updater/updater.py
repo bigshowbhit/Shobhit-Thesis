@@ -15,14 +15,14 @@ class Updater:
         self.VERIFY = (ROOT / self.config.get("tls_ca_cert")).as_posix() if self.config.get("tls_ca_cert") else True
 
     def get_current_version(self) -> str | None:
-        if CURRENT.is_symlink():
+        current_file = Path('/app/client/current_base/current.txt')
+        if current_file.exists():
             try:
-                resolved = CURRENT.resolve(strict=True)  # strict raises if target missing
-                if resolved.parent == STATE:
-                    return resolved.name
-            except FileNotFoundError:
-                # dangling symlink
-                return None
+                version = current_file.read_text(encoding='utf-8').strip()
+                if version and self.is_installed(version):
+                    return version
+            except Exception:
+                pass
         return None
     
     def is_installed(self, version: str) -> bool:
@@ -33,7 +33,9 @@ class Updater:
 
         target_path = STATE / version
         if target_path.exists():
-            atomic_symlink_update(target_path, CURRENT)
+            current_file = Path('/app/client/current_base/current.txt')
+            current_file.write_text(version + '\n', encoding='utf-8')
+            #atomic_symlink_update(target_path, CURRENT)
         else:
             raise RuntimeError(f"Version {version} does not exist in state directory.")
 
@@ -46,6 +48,7 @@ class Updater:
         if current_version not in (None, "none") and not self.is_installed(current_version):
             print(f"[warn] local payload for {current_version} missing; treating as none")
             current_version = "none"
+            
             # Optional: if CURRENT is dangling, remove it so we can recreate it later
             if CURRENT.is_symlink():
                 try:

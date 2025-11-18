@@ -49,8 +49,8 @@ services:
       - ./client/configs/device-001.yaml:/app/client/config.yaml:ro
       - ./client/public.pem:/app/client/public.pem:ro
       - ./client/ca.pem:/app/client/ca.pem:ro
-      - client001_state:/app/client/state
-      - client001_staging:/app/client/staging
+      - ./clients/device-001/state:/app/client/state
+      - ./clients/device-001/staging:/app/client/staging
       - ./clients/device-001:/app/client/current_base
     environment:
       - PYTHONUNBUFFERED=1
@@ -65,16 +65,16 @@ services:
       - ./client/configs/device-002.yaml:/app/client/config.yaml:ro
       - ./client/public.pem:/app/client/public.pem:ro
       - ./client/ca.pem:/app/client/ca.pem:ro
-      - client002_state:/app/client/state
-      - client002_staging:/app/client/staging
+      - ./clients/device-002/state:/app/client/state
+      - ./clients/device-002/staging:/app/client/staging
       - ./clients/device-002:/app/client/current_base
     environment:
       - PYTHONUNBUFFERED=1
     working_dir: /app/client
     command: ["sh", "-c", "sleep 5 && python client.py"]
 
-volumes:
-  client001_state: {}
-  client001_staging: {}
-  client002_state: {}
-  client002_staging: {}
+# volumes:
+#   client001_state: {}
+#   client001_staging: {}
+#   client002_state: {}
+#   client002_staging: {}
